@@ -18,9 +18,13 @@ pub const File = struct {
 };
 
 pub fn init(builder: *std.Build) WriteFileStep {
-    return WriteFileStep{
+    return .{
         .builder = builder,
-        .step = Step.init(.write_file, "writefile", builder.allocator, make),
+        .step = Step.init(builder.allocator, .{
+            .id = .write_file,
+            .name = "writefile",
+            .makeFn = make,
+        }),
         .files = .{},
     };
 }

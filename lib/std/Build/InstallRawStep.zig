@@ -46,7 +46,11 @@ pub fn create(
 ) *InstallRawStep {
     const self = builder.allocator.create(InstallRawStep) catch @panic("OOM");
     self.* = InstallRawStep{
-        .step = Step.init(.install_raw, builder.fmt("install raw binary {s}", .{artifact.step.name}), builder.allocator, make),
+        .step = Step.init(builder.allocator, .{
+            .id = base_id,
+            .name = builder.fmt("install raw binary {s}", .{artifact.step.name}),
+            .makeFn = make,
+        }),
         .builder = builder,
         .artifact = artifact,
         .dest_dir = if (options.dest_dir) |d| d else switch (artifact.kind) {
