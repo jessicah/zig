@@ -401,6 +401,11 @@ pub const ChildProcess = struct {
         }
     }
 
+    pub const ExecError = os.GetCwdError || os.ReadError || SpawnError || os.PollError || error{
+        StdoutStreamTooLong,
+        StderrStreamTooLong,
+    };
+
     /// Spawns a child process, waits for it, collecting stdout and stderr, and then returns.
     /// If it succeeds, the caller owns result.stdout and result.stderr memory.
     pub fn exec(args: struct {
@@ -411,7 +416,7 @@ pub const ChildProcess = struct {
         env_map: ?*const EnvMap = null,
         max_output_bytes: usize = 50 * 1024,
         expand_arg0: Arg0Expand = .no_expand,
-    }) !ExecResult {
+    }) ExecError!ExecResult {
         var child = ChildProcess.init(args.argv, args.allocator);
         child.stdin_behavior = .Ignore;
         child.stdout_behavior = .Pipe;
