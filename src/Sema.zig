@@ -16394,7 +16394,7 @@ fn zirUnreachable(sema: *Sema, block: *Block, inst: Zir.Inst.Index) CompileError
     const src = inst_data.src();
 
     if (block.is_comptime or inst_data.force_comptime) {
-        return sema.fail(block, src, "reached unreachable code", .{});
+        return sema.fail(block, src, "reached unreachable code zir Sema", .{});
     }
     // TODO Add compile error for @optimizeFor occurring too late in a scope.
     try block.addUnreachable(src, true);
@@ -22369,7 +22369,7 @@ fn safetyPanic(
     panic_id: PanicId,
 ) CompileError!Zir.Inst.Index {
     const msg = switch (panic_id) {
-        .unreach => "reached unreachable code",
+        .unreach => "reached unreachable code in Sema",
         .unwrap_null => "attempt to use null value",
         .cast_to_null => "cast causes pointer to be null",
         .incorrect_alignment => "incorrect alignment",

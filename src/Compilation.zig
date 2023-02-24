@@ -4293,7 +4293,6 @@ pub fn addCCArgs(
     switch (ext) {
         .c, .cpp, .m, .mm, .h, .cu => {
             try argv.appendSlice(&[_][]const u8{
-                "-nostdinc",
                 "-fno-spell-checking",
             });
             if (comp.bin_file.options.lto) {
@@ -4838,7 +4837,7 @@ fn detectLibCIncludeDirs(
 }
 
 fn detectLibCFromLibCInstallation(arena: Allocator, target: Target, lci: *const LibCInstallation) !LibCDirs {
-    var list = try std.ArrayList([]const u8).initCapacity(arena, 5);
+    var list = try std.ArrayList([]const u8).initCapacity(arena, 9);
 
     list.appendAssumeCapacity(lci.include_dir.?);
 
@@ -4855,6 +4854,15 @@ fn detectLibCFromLibCInstallation(arena: Allocator, target: Target, lci: *const 
         }
     }
     if (target.os.tag == .haiku) {
+        const sys_include_dir_path = lci.sys_include_dir orelse return error.LibCInstallationNotAvailable;
+        const bsd_dir = try std.fs.path.join(arena, &[_][]const u8{ sys_include_dir_path, "bsd" });
+        list.appendAssumeCapacity(bsd_dir);
+        const glibc_dir = try std.fs.path.join(arena, &[_][]const u8{ sys_include_dir_path, "glibc" });
+        list.appendAssumeCapacity(glibc_dir);
+        const gnu_dir = try std.fs.path.join(arena, &[_][]const u8{ sys_include_dir_path, "gnu" });
+        list.appendAssumeCapacity(gnu_dir);
+        const posix_dir = try std.fs.path.join(arena, &[_][]const u8{ sys_include_dir_path, "posix" });
+        list.appendAssumeCapacity(posix_dir);
         const include_dir_path = lci.include_dir orelse return error.LibCInstallationNotAvailable;
         const os_dir = try std.fs.path.join(arena, &[_][]const u8{ include_dir_path, "os" });
         list.appendAssumeCapacity(os_dir);

@@ -200,7 +200,11 @@ pub fn buildLibCXX(comp: *Compilation) !void {
             try cflags.append("-fPIC");
         }
         try cflags.append("-nostdinc++");
-        try cflags.append("-std=c++20");
+        if (target.os.tag == .haiku) {
+            try cflags.append("-std=gnu++20");
+        } else {
+            try cflags.append("-std=c++20");
+        }
         try cflags.append("-Wno-user-defined-literals");
 
         c_source_files.appendAssumeCapacity(.{
@@ -355,7 +359,11 @@ pub fn buildLibCXXABI(comp: *Compilation) !void {
         try cflags.append("-nostdinc++");
         try cflags.append("-fstrict-aliasing");
         try cflags.append("-funwind-tables");
-        try cflags.append("-std=c++20");
+        if (target.os.tag == .haiku) {
+            try cflags.append("-std=gnu++20");
+        } else {
+            try cflags.append("-std=c++20");
+        }
 
         c_source_files.appendAssumeCapacity(.{
             .src_path = try comp.zig_lib_directory.join(arena, &[_][]const u8{ "libcxxabi", cxxabi_src }),

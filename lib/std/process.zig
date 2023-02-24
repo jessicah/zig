@@ -1085,6 +1085,7 @@ pub fn getSelfExeSharedLibPaths(allocator: Allocator) error{OutOfMemory}![][:0]u
         .dragonfly,
         .openbsd,
         .solaris,
+        .haiku,
         => {
             var paths = List.init(allocator);
             errdefer {
@@ -1124,24 +1125,6 @@ pub fn getSelfExeSharedLibPaths(allocator: Allocator) error{OutOfMemory}![][:0]u
                 errdefer allocator.free(item);
                 try paths.append(item);
             }
-            return paths.toOwnedSlice();
-        },
-        // revisit if Haiku implements dl_iterat_phdr (https://dev.haiku-os.org/ticket/15743)
-        .haiku => {
-            var paths = List.init(allocator);
-            errdefer {
-                const slice = paths.toOwnedSlice();
-                for (slice) |item| {
-                    allocator.free(item);
-                }
-                allocator.free(slice);
-            }
-
-            var b = "/boot/system/runtime_loader";
-            const item = try allocator.dupeZ(u8, mem.sliceTo(b, 0));
-            errdefer allocator.free(item);
-            try paths.append(item);
-
             return paths.toOwnedSlice();
         },
         else => @compileError("getSelfExeSharedLibPaths unimplemented for this target"),

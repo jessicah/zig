@@ -462,10 +462,10 @@ pub fn libcFullLinkFlags(target: std.Target) []const []const u8 {
             "-lc",
         },
         .haiku => &[_][]const u8{
-            "-lm",
             "-lroot",
-            "-lpthread",
-            "-lc",
+            "-lbsd",
+            // TODO: Haiku: Might not need libgnu.so, but for now, can remove later once working...
+            "-lgnu",
         },
         else => switch (target.abi) {
             .android => &[_][]const u8{

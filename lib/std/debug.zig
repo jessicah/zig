@@ -812,6 +812,7 @@ pub fn openSelfDebugInfo(allocator: mem.Allocator) anyerror!DebugInfo {
             .macos,
             .windows,
             .solaris,
+            .haiku,
             => return DebugInfo.init(allocator),
             else => return error.UnsupportedDebugInfo,
         }
@@ -1237,8 +1238,6 @@ pub const DebugInfo = struct {
             return self.lookupModuleDyld(address);
         } else if (native_os == .windows) {
             return self.lookupModuleWin32(address);
-        } else if (native_os == .haiku) {
-            return self.lookupModuleHaiku(address);
         } else if (comptime builtin.target.isWasm()) {
             return self.lookupModuleWasm(address);
         } else {
@@ -1388,7 +1387,7 @@ pub const DebugInfo = struct {
             address: usize,
             // Output
             base_address: usize = undefined,
-            name: []const u8 = undefined,
+            name: [] u8 = undefined,
         } = .{ .address = address };
         const CtxTy = @TypeOf(ctx);
 
@@ -1409,7 +1408,10 @@ pub const DebugInfo = struct {
                     if (context.address >= seg_start and context.address < seg_end) {
                         // Android libc uses NULL instead of an empty string to mark the
                         // main program
-                        context.name = mem.sliceTo(info.dlpi_name, 0) orelse "";
+                        std.debug.print("dl_iterate_phdr: dlpi_name: {?s}\n", .{info.dlpi_name});
+                        //context.name = 
+                        const name = mem.sliceTo(info.dlpi_name, 0) orelse "";
+                        mem.copy(u8, context.name, name);
                         context.base_address = info.dlpi_addr;
                         // Stop the iteration
                         return error.Found;
@@ -1430,6 +1432,11 @@ pub const DebugInfo = struct {
         errdefer self.allocator.destroy(obj_di);
 
         // TODO https://github.com/ziglang/zig/issues/5525
+        if (ctx.name.len > 0) {
+            std.debug.print("attempting to open file in cwd: '{s}', len: {d}\n", .{ctx.name, ctx.name.len});
+        } else {
+            std.debug.print("opening self exe\n", .{});
+        }
         const copy = if (ctx.name.len > 0)
             fs.cwd().openFile(ctx.name, .{ .intended_io_mode = .blocking })
         else
@@ -1830,6 +1837,7 @@ fn getDebugInfoAllocator() mem.Allocator {
     return allocator;
 }
 
+// TODO: Haiku
 /// Whether or not the current target can print useful debug information when a segfault occurs.
 pub const have_segfault_handling_support = switch (native_os) {
     .linux,
@@ -1899,6 +1907,7 @@ fn resetSegfaultHandler() void {
     updateSegfaultHandler(&act) catch {};
 }
 
+// TODO: Haiku
 fn handleSegfaultPosix(sig: i32, info: *const os.siginfo_t, ctx_ptr: ?*const anyopaque) callconv(.C) noreturn {
     // Reset to the default handler so that if a segfault happens in this handler it will crash
     // the process. Also when this handler returns, the original instruction will be repeated

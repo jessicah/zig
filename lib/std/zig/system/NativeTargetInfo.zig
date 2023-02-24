@@ -252,6 +252,7 @@ fn detectAbiAndDynamicLinker(
 ) DetectError!NativeTargetInfo {
     const native_target_has_ld = comptime builtin.target.hasDynamicLinker();
     const is_linux = builtin.target.os.tag == .linux;
+    const is_haiku = builtin.target.os.tag == .haiku;
     const have_all_info = cross_target.dynamic_linker.get() != null and
         cross_target.abi != null and (!is_linux or cross_target.abi.?.isGnu());
     const os_is_non_native = cross_target.os_tag != null;
@@ -312,6 +313,10 @@ fn detectAbiAndDynamicLinker(
         // Since /usr/bin/env is hard-coded into the shebang line of many portable scripts, it's a
         // reasonably reliable path to start with.
         var file_name: []const u8 = "/usr/bin/env";
+        // Haiku automatically redirects /usr/bin/env inside runtime_loader, there is no /usr.
+        if (is_haiku) {
+            file_name = "/bin/env";
+        }
         // #! (2) + 255 (max length of shebang line since Linux 5.1) + \n (1)
         var buffer: [258]u8 = undefined;
         while (true) {

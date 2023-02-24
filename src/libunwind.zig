@@ -77,10 +77,19 @@ pub fn buildStaticLib(comp: *Compilation) !void {
         if (target.cpu.arch.isARM() and target.abi.floatAbi() == .hard) {
             try cflags.append("-DCOMPILER_RT_ARMHF_TARGET");
         }
+        if (target.os.tag == .haiku) {
+            try cflags.append("-D_DEFAULT_SOURCE=1");
+            try cflags.append("-DPT_GNU_EH_FRAME=PT_EH_FRAME");
+            try cflags.append("-I");
+            try cflags.append("/system/develop/headers/private/system");
+            try cflags.append("-I");
+            try cflags.append("/system/develop/headers/private/system/arch/x86_64");
+        }
         try cflags.append("-Wno-bitwise-conditional-parentheses");
         try cflags.append("-Wno-visibility");
         try cflags.append("-Wno-incompatible-pointer-types");
 
+        
         c_source_files[i] = .{
             .src_path = try comp.zig_lib_directory.join(arena, &[_][]const u8{unwind_src}),
             .extra_flags = cflags.items,

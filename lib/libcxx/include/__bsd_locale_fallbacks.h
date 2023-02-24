@@ -13,9 +13,12 @@
 #ifndef _LIBCPP___BSD_LOCALE_FALLBACKS_H
 #define _LIBCPP___BSD_LOCALE_FALLBACKS_H
 
+#define _GNU_SOURCE
+
 #include <memory>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header

@@ -2982,20 +2982,26 @@ pub fn selfExePath(out_buffer: []u8) SelfExePathError![]u8 {
         },
         .openbsd, .haiku => {
             // OpenBSD doesn't support getting the path of a running process, so try to guess it
-            if (os.argv.len == 0)
+            if (os.argv.len == 0) {
+                std.debug.print("selfExePath: argv len is 0\n", .{});
                 return error.FileNotFound;
+            }
 
             const argv0 = mem.span(os.argv[0]);
             if (mem.indexOf(u8, argv0, "/") != null) {
                 // argv[0] is a path (relative or absolute): use realpath(3) directly
                 var real_path_buf: [MAX_PATH_BYTES]u8 = undefined;
                 const real_path = try os.realpathZ(os.argv[0], &real_path_buf);
-                if (real_path.len > out_buffer.len)
+                if (real_path.len > out_buffer.len) {
+                    std.debug.print("selfExePath: real_path.len > out_buffer.len\n", .{});
                     return error.NameTooLong;
+                }
                 mem.copy(u8, out_buffer, real_path);
+                std.debug.print("selfExePath: {s}\n", .{out_buffer[0..real_path.len]});
                 return out_buffer[0..real_path.len];
             } else if (argv0.len != 0) {
                 // argv[0] is not empty (and not a path): search it inside PATH
+                std.debug.print("selfExePath: not empty and not a path\n");
                 const PATH = std.os.getenvZ("PATH") orelse return error.FileNotFound;
                 var path_it = mem.tokenize(u8, PATH, &[_]u8{path.delimiter});
                 while (path_it.next()) |a_path| {

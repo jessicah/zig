@@ -938,7 +938,7 @@ pub fn ftruncate(fd: fd_t, length: u64) TruncateError!void {
 /// On these systems, the read races with concurrent writes to the same file descriptor.
 pub fn preadv(fd: fd_t, iov: []const iovec, offset: u64) PReadError!usize {
     const have_pread_but_not_preadv = switch (builtin.os.tag) {
-        .windows, .macos, .ios, .watchos, .tvos, .haiku => true,
+        .windows, .macos, .ios, .watchos, .tvos => true,
         else => false,
     };
     if (have_pread_but_not_preadv) {
@@ -1294,7 +1294,7 @@ pub fn pwrite(fd: fd_t, bytes: []const u8, offset: u64) PWriteError!usize {
 /// If `iov.len` is larger than `IOV_MAX`, a partial write will occur.
 pub fn pwritev(fd: fd_t, iov: []const iovec_const, offset: u64) PWriteError!usize {
     const have_pwrite_but_not_pwritev = switch (builtin.os.tag) {
-        .windows, .macos, .ios, .watchos, .tvos, .haiku => true,
+        .windows, .macos, .ios, .watchos, .tvos => true,
         else => false,
     };
 
@@ -5565,6 +5565,7 @@ pub fn sched_getaffinity(pid: pid_t) SchedGetAffinityError!cpu_set_t {
 /// Used to convert a slice to a null terminated slice on the stack.
 /// TODO https://github.com/ziglang/zig/issues/287
 pub fn toPosixPath(file_path: []const u8) ![MAX_PATH_BYTES - 1:0]u8 {
+    //std.debug.print("toPosixPath: len = {d}, index of null = {?d}\n", .{file_path.len, std.mem.indexOfScalar(u8, file_path, 0)});
     if (std.debug.runtime_safety) assert(std.mem.indexOfScalar(u8, file_path, 0) == null);
     var path_with_null: [MAX_PATH_BYTES - 1:0]u8 = undefined;
     // >= rather than > to make room for the null byte

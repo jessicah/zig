@@ -8,6 +8,14 @@ extern "c" fn _errnop() *c_int;
 
 pub const _errno = _errnop;
 
+pub extern "c" fn preadv(fd: c_int, iov: [*]const iovec, iovcnt: c_int, offset: i64) isize;
+pub extern "c" fn pwritev(fd: c_int, iov: [*]const iovec_const, iovcnt: c_int, offset: i64) isize;
+
+
+pub const dl_iterate_phdr_callback = std.meta.FnPtr(fn (info: *dl_phdr_info, size: usize, data: ?*anyopaque) callconv(.C) c_int);
+
+pub extern "c" fn dl_iterate_phdr(callback: dl_iterate_phdr_callback, data: ?*anyopaque) c_int;
+
 pub extern "c" fn find_directory(which: c_int, volume: i32, createIt: bool, path_ptr: [*]u8, length: i32) u64;
 
 pub extern "c" fn find_thread(thread_name: ?*anyopaque) i32;
@@ -152,10 +160,10 @@ pub const RTLD = struct {
 };
 
 pub const dl_phdr_info = extern struct {
-    dlpi_addr: usize,
+    dlpi_addr: std.elf.Addr,
     dlpi_name: ?[*:0]const u8,
     dlpi_phdr: [*]std.elf.Phdr,
-    dlpi_phnum: u16,
+    dlpi_phnum: std.elf.Half,
 };
 
 pub const Flock = extern struct {
